@@ -29,3 +29,6 @@ class TimerHandle(Handle):
     @start_time.setter
     def start_time(self, _start_time: int):
         self._start_time = _start_time
+
+    def __lt__(self, _rhs):
+        return self._start_time < _rhs.start_time
