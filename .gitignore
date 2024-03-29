@@ -1,0 +1,8 @@
+.vim
+*.swp
+.DS_Store
+.vscode
+*.pyc
+.mypy_cache
+__pycache__
+venv
