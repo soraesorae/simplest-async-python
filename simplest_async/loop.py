@@ -2,16 +2,19 @@ from collections import deque
 import heapq
 import time
 from .handle import Handle, TimerHandle
+from .kqueue_select import KqueueSelect
 from typing import List, Callable
 
 
 class EventLoop:
     _callback_queue: deque[Handle | TimerHandle]
     _timer_callback_heap: List[TimerHandle]
+    _select: KqueueSelect
 
     def __init__(self):
         self._callback_queue = deque()
         self._timer_callback_heap = []
+        self._select = KqueueSelect()
 
     def push_callback(self, _callback: Callable, *_args):
         handle = Handle(_callback, *_args)
