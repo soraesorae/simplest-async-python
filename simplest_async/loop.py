@@ -40,7 +40,11 @@ class EventLoop:
                 handle.run()
             except:
                 pass
+        
+    def stop(self):
+        self._stop = True
 
     def run_until_stop(self):
-        while True:
+        self._stop = False
+        while not self._stop:
             self._round()
