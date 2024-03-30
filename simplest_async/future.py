@@ -28,7 +28,8 @@ class Future:
         self._callbacks = []
 
     def _run_callbacks(self):
-        raise NotImplementedError()
+        for callback in self._callbacks:
+            self._loop.push_callback(callback, self)
 
     def add_callback(self, _callback: Callable):
         self._callbacks.append(_callback)
