@@ -8,7 +8,7 @@ class Task(Future):
     _coroutine: Coroutine
     _current_wait_fut: Future | None
 
-    def __init__(self, _loop: EventLoop, _coroutine: Coroutine):
+    def __init__(self, _coroutine: Coroutine, _loop: EventLoop):
         super().__init__(_loop)
         # TODO: check _coroutine is Coroutine
         self._coroutine = _coroutine
