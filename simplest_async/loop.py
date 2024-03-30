@@ -23,3 +23,23 @@ class EventLoop:
 
     def _round(self):
         current_ts = time.monotonic()
+
+        while (
+            len(self._timer_callback_heap) > 0
+            and self._timer_callback_heap[0].start_time <= current_ts
+        ):
+            timer_callback_handle = heapq.heappop(self._timer_callback_heap)
+            self._callback_queue.append(timer_callback_handle)
+
+        queue_len = len(self._callback_queue)
+
+        for _ in range(queue_len):
+            handle = self._callback_queue.popleft()
+            try:
+                handle.run()
+            except:
+                pass
+
+    def run_until_stop(self):
+        while True:
+            self._round()
