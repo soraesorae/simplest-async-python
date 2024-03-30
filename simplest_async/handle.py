@@ -16,9 +16,9 @@ class Handle:
 
 
 class TimerHandle(Handle):
-    _start_time: int
+    _start_time: float
 
-    def __init__(self, _start_time: int, _callback, *_args):
+    def __init__(self, _start_time: float, _callback, *_args):
         super().__init__(_callback, *_args)
         self._start_time = _start_time
 
@@ -27,7 +27,7 @@ class TimerHandle(Handle):
         return self._start_time
 
     @start_time.setter
-    def start_time(self, _start_time: int):
+    def start_time(self, _start_time: float):
         self._start_time = _start_time
 
     def __lt__(self, _rhs):
