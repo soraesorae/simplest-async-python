@@ -57,7 +57,7 @@ class Future:
 
     def __await__(self):
         if not self.is_done():
-            return self
+            yield self
         if not self.is_done():
             raise AwaitBeforeDone()
         return self.result()
