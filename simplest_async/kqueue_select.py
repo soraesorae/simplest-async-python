@@ -1,4 +1,5 @@
 import select
+from typing import List, Tuple
 
 EVENT_READ = 1 << 0
 EVENT_WRITE = 1 << 1
@@ -35,7 +36,7 @@ class KqueueSelect:
         kev = select.kevent(ident=fd, filter=kqueue_filter, flags=select.KQ_EV_DELETE)
         self._kqueue.control([kev], 0, 0)
 
-    def select(self, _timeout: float | None):
+    def select(self, _timeout: float | None) -> List[Tuple[int, int]]:
         _max_events = max(self._max_events, 1)  # to prevent ignoring timeout
         evs = self._kqueue.control(None, _max_events, _timeout)
         fd_events = []
@@ -43,3 +44,4 @@ class KqueueSelect:
             fd = ev.ident
             filter = ev.filter
             fd_events.append((fd, filter))
+        return fd_events
