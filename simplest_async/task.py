@@ -23,6 +23,11 @@ class Task(Future):
             if isinstance(res, Future):
                 self._current_wait_fut = res
                 res.add_callback(self._wakeup)
+            else:
+                self._loop.push_callback(self._step)
 
     def _wakeup(self, _fut: Future):
-        raise NotImplementedError()
+        try:
+            _fut.result()
+        except:
+            self._step()
