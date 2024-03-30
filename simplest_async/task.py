@@ -41,3 +41,9 @@ class Task(Future):
             pass
         else:
             self._step()
+
+
+async def sleep(_secs: float, _loop: EventLoop):
+    fut = Future(_loop)
+    _loop.push_timer_callback(_secs, fut.set_result, None)
+    await fut
