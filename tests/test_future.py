@@ -10,4 +10,5 @@ class TestFuture:
 
     def test_set_reseult(self):
         co = self.coro()
-        co.send(None)
+        fut = co.send(None)
+        fut.set_result(1234)
