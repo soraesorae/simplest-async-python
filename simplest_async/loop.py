@@ -40,7 +40,7 @@ class EventLoop:
                 handle.run()
             except:
                 pass
-        
+
     def stop(self):
         self._stop = True
 
