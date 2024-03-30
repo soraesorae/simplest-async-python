@@ -17,8 +17,9 @@ class EventLoop:
         handle = Handle(_callback, *_args)
         self._callback_queue.append(handle)
 
-    def push_timer_callback(self, _start_time: int, _callback: Callable, *_args):
-        t_handle = TimerHandle(_start_time, _callback, *_args)
+    def push_timer_callback(self, _secs: float, _callback: Callable, *_args):
+        current_ts = time.monotonic()
+        t_handle = TimerHandle(current_ts + _secs, _callback, *_args)
         heapq.heappush(self._timer_callback_heap, t_handle)
 
     def _round(self):
