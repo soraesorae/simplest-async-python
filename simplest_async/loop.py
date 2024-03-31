@@ -56,5 +56,5 @@ class EventLoop:
 _cur_running_loop = EventLoop()
 
 
-def get_running_loop():
+def get_running_loop() -> EventLoop:
     return _cur_running_loop
