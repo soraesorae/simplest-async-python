@@ -9,14 +9,14 @@ EVENT_WRITE = 1 << 1
 
 class KqueueSelect:
     _kqueue: select.kqueue
-    _read_callback: Handle | None
-    _write_callback: Handle | None
+    _read_callback: Dict[int, Handle]
+    _write_callback: Dict[int, Handle]
 
     def __init__(self):
         self._kqueue = select.kqueue()
         self._max_events = 0
-        self._read_callback = None
-        self._write_callback = None
+        self._read_callback = {}
+        self._write_callback = {}
 
     def add_file_read_event(self, fd: int, _read_callback=None, *_args):
         # KQ_FILTER_READ = -1
@@ -28,7 +28,7 @@ class KqueueSelect:
         self._kqueue.control([kev], 0, 0)
         self._max_events += 1
         handle = Handle(_read_callback, _args)
-        self._read_callback = handle
+        self._read_callback[fd] = handle
 
     def add_file_write_event(self, fd: int, _write_callback=None, *_args):
         kev = select.kevent(
@@ -37,7 +37,7 @@ class KqueueSelect:
         self._kqueue.control([kev], 0, 0)
         self._max_events += 1
         handle = Handle(_write_callback, _args)
-        self._write_callback = handle
+        self._write_callback[fd] = handle
 
     def del_file_read_event(self, fd: int):
         kev = select.kevent(
@@ -45,7 +45,7 @@ class KqueueSelect:
         )
         self._kqueue.control([kev], 0, 0)
         self._max_events -= 1
-        self._read_callback = None
+        del self._read_callback[fd]
 
     def del_file_write_event(self, fd: int):
         kev = select.kevent(
@@ -53,7 +53,7 @@ class KqueueSelect:
         )
         self._kqueue.control([kev], 0, 0)
         self._max_events -= 1
-        self._write_callback = None
+        del self._write_callback[fd]
 
     def select(self, _timeout: float | None) -> List[Tuple[int, int]]:
         _max_events = max(self._max_events, 1)  # to prevent ignoring timeout
