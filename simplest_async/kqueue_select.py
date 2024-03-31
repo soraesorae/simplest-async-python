@@ -55,18 +55,19 @@ class KqueueSelect:
         self._max_events -= 1
         del self._write_callback[fd]
 
-    def select(self, _timeout: float | None) -> List[Tuple[int, int]]:
+    def select(self, _timeout: float | None) -> List[Tuple[int, int, Handle]]:
         _max_events = max(self._max_events, 1)  # to prevent ignoring timeout
         evs = self._kqueue.control(None, _max_events, _timeout)
         fd_events = []
         for ev in evs:
             fd = ev.ident
-            kq_filter = ev.filter  # ev.filter can be -1 or -2
             filter = 0
-            if kq_filter & select.KQ_FILTER_READ:
+            if ev.filter & select.KQ_FILTER_READ:  # ev.filter can be -1 or -2
                 filter = EVENT_READ
-            elif kq_filter & select.KQ_FILTER_WRITE:
+                callback = self._read_callback[fd]
+            elif ev.filter & select.KQ_FILTER_WRITE:
                 filter = EVENT_WRITE
+                callback = self._write_callback[fd]
 
-            fd_events.append((fd, filter))
+            fd_events.append((fd, filter, callback))
         return fd_events
