@@ -27,6 +27,16 @@ class EventLoop:
         t_handle = TimerHandle(current_ts + _secs, _callback, *_args)
         heapq.heappush(self._timer_callback_heap, t_handle)
 
+    def add_file_read_event(
+        self, _fd: int, _read_callback: Callable, *_args: Any
+    ) -> None:
+        self._select.add_file_read_event(_fd, _read_callback, *_args)
+
+    def add_file_write_event(
+        self, _fd: int, _write_callback: Callable, *_args: Any
+    ) -> None:
+        self._select.add_file_write_event(_fd, _write_callback, *_args)
+
     def _round(self) -> None:
         current_ts = time.monotonic()
 
@@ -36,6 +46,14 @@ class EventLoop:
         ):
             timer_callback_handle = heapq.heappop(self._timer_callback_heap)
             self._callback_queue.append(timer_callback_handle)
+
+        if self._callback_queue:
+            timeout = 0.0
+        elif self._timer_callback_heap:
+            timeout = max(0.0, self._timer_callback_heap[0].start_time - current_ts)
+
+        events = self._select.select(timeout)
+        # event -> _callback_queue
 
         queue_len = len(self._callback_queue)
 
