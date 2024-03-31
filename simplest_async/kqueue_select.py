@@ -5,21 +5,11 @@ from typing import List, Tuple, Dict, Callable
 EVENT_READ = 1 << 0
 EVENT_WRITE = 1 << 1
 
-class FileInfo:
-    _fd: int
-    _read_callback: Callable
-    _write_callback: Callable
-    _sock: socket.socket
-
-    def __init__(self, _fd: int, _read_callback=None, _write_callback=None, _sock=None):
-        self._fd = _fd
-        self._read_callback = _read_callback
-        self._write_callback = _write_callback
-        self._sock = _sock
 
 class KqueueSelect:
     _kqueue: select.kqueue
-    _file_info: Dict[int, FileInfo]
+    _read_callback: Handle
+    _write_callback: Handle
 
     def __init__(self):
         self._kqueue = select.kqueue()
