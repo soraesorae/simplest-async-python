@@ -5,15 +5,15 @@ import time
 
 
 class TestTask:
-    async def coro_sleep(self, _secs: float, _loop: loop.EventLoop):
+    async def coro_sleep(self, _secs: float):
         self._start_time = time.time()
-        await task.sleep(_secs, _loop)
+        await task.sleep(_secs)
         self._end_time = time.time()
-        _loop.stop()
+        loop.get_running_loop().stop()
 
     def test_sleep(self):
-        _loop = loop.EventLoop()
-        coro = self.coro_sleep(3, _loop)
+        _loop = loop.get_running_loop()
+        coro = self.coro_sleep(3.0)
         _ = task.Task(coro, _loop)
         _loop.run_until_stop()
         td = self._end_time - self._start_time
