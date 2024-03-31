@@ -49,6 +49,12 @@ class KqueueSelect:
         fd_events = []
         for ev in evs:
             fd = ev.ident
-            filter = ev.filter
+            kq_filter = ev.filter # ev.filter can be -1 or -2
+            filter = 0
+            if kq_filter & select.KQ_FILTER_READ:
+                filter = EVENT_READ
+            elif kq_filter & select.KQ_FILTER_WRITE:
+                filter = EVENT_WRITE
+
             fd_events.append((fd, filter))
         return fd_events
