@@ -8,19 +8,19 @@ class Task(Future):
     _coroutine: Coroutine
     _current_wait_fut: Future | None
 
-    def __init__(self, _coroutine: Coroutine, _loop: EventLoop):
+    def __init__(self, _coroutine: Coroutine, _loop: EventLoop) -> None:
         super().__init__(_loop)
         # TODO: check _coroutine is Coroutine
         self._coroutine = _coroutine
         self._current_wait_fut = None
         self._loop.push_callback(self._step)
 
-    def cancel(self):
+    def cancel(self) -> None:
         if self._current_wait_fut is not None:
             self._current_wait_fut.cancel()
         self._is_cancelled = True
 
-    def _step(self):
+    def _step(self) -> None:
         try:
             res = self._coroutine.send(None)
         except StopIteration as e:
@@ -34,7 +34,7 @@ class Task(Future):
             else:
                 self._loop.push_callback(self._step)
 
-    def _wakeup(self, _fut: Future):
+    def _wakeup(self, _fut: Future) -> None:
         try:
             _fut.result()
         except:
@@ -43,7 +43,7 @@ class Task(Future):
             self._step()
 
 
-async def sleep(_secs: float):
+async def sleep(_secs: float) -> None:
     _loop = get_running_loop()
     fut = Future(_loop)
     _loop.push_timer_callback(_secs, fut.set_result, None)
