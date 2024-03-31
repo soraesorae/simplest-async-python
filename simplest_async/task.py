@@ -1,4 +1,4 @@
-from .loop import EventLoop
+from .loop import EventLoop, get_running_loop
 from .future import Future, FutureCancelled
 from typing import Coroutine
 
@@ -43,7 +43,8 @@ class Task(Future):
             self._step()
 
 
-async def sleep(_secs: float, _loop: EventLoop):
+async def sleep(_secs: float):
+    _loop = get_running_loop()
     fut = Future(_loop)
     _loop.push_timer_callback(_secs, fut.set_result, None)
     await fut
