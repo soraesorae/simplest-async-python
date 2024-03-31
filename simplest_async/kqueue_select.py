@@ -1,7 +1,7 @@
 import select
 import socket
 from simplest_async.handle import Handle
-from typing import List, Tuple, Dict, Callable
+from typing import List, Tuple, Dict, Callable, Any
 
 EVENT_READ = 1 << 0
 EVENT_WRITE = 1 << 1
@@ -12,13 +12,15 @@ class KqueueSelect:
     _read_callback: Dict[int, Handle]
     _write_callback: Dict[int, Handle]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._kqueue = select.kqueue()
         self._max_events = 0
         self._read_callback = {}
         self._write_callback = {}
 
-    def add_file_read_event(self, fd: int, _read_callback=None, *_args):
+    def add_file_read_event(
+        self, fd: int, _read_callback: Callable, *_args: Any
+    ) -> None:
         # KQ_FILTER_READ = -1
         # KQ_FILTER_WRITE = -2
         # -1 | -2 = -1
@@ -30,7 +32,9 @@ class KqueueSelect:
         handle = Handle(_read_callback, _args)
         self._read_callback[fd] = handle
 
-    def add_file_write_event(self, fd: int, _write_callback=None, *_args):
+    def add_file_write_event(
+        self, fd: int, _write_callback: Callable, *_args: Any
+    ) -> None:
         kev = select.kevent(
             ident=fd, filter=select.KQ_FILTER_WRITE, flags=select.KQ_EV_ADD
         )
@@ -39,7 +43,7 @@ class KqueueSelect:
         handle = Handle(_write_callback, _args)
         self._write_callback[fd] = handle
 
-    def del_file_read_event(self, fd: int):
+    def del_file_read_event(self, fd: int) -> None:
         kev = select.kevent(
             ident=fd, filter=select.KQ_FILTER_READ, flags=select.KQ_EV_DELETE
         )
@@ -47,7 +51,7 @@ class KqueueSelect:
         self._max_events -= 1
         del self._read_callback[fd]
 
-    def del_file_write_event(self, fd: int):
+    def del_file_write_event(self, fd: int) -> None:
         kev = select.kevent(
             ident=fd, filter=select.KQ_FILTER_WRITE, flags=select.KQ_EV_DELETE
         )

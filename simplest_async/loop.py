@@ -3,7 +3,7 @@ import heapq
 import time
 from .handle import Handle, TimerHandle
 from .kqueue_select import KqueueSelect
-from typing import List, Callable
+from typing import List, Callable, Any
 
 
 class EventLoop:
@@ -11,21 +11,23 @@ class EventLoop:
     _timer_callback_heap: List[TimerHandle]
     _select: KqueueSelect
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._callback_queue = deque()
         self._timer_callback_heap = []
         self._select = KqueueSelect()
 
-    def push_callback(self, _callback: Callable, *_args):
+    def push_callback(self, _callback: Callable, *_args: Any) -> None:
         handle = Handle(_callback, *_args)
         self._callback_queue.append(handle)
 
-    def push_timer_callback(self, _secs: float, _callback: Callable, *_args):
+    def push_timer_callback(
+        self, _secs: float, _callback: Callable, *_args: Any
+    ) -> None:
         current_ts = time.monotonic()
         t_handle = TimerHandle(current_ts + _secs, _callback, *_args)
         heapq.heappush(self._timer_callback_heap, t_handle)
 
-    def _round(self):
+    def _round(self) -> None:
         current_ts = time.monotonic()
 
         while (
@@ -44,10 +46,10 @@ class EventLoop:
             except:
                 pass
 
-    def stop(self):
+    def stop(self) -> None:
         self._stop = True
 
-    def run_until_stop(self):
+    def run_until_stop(self) -> None:
         self._stop = False
         while not self._stop:
             self._round()
