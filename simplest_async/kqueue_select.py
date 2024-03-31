@@ -1,5 +1,6 @@
 import select
 import socket
+from simplest_async.handle import Handle
 from typing import List, Tuple, Dict, Callable
 
 EVENT_READ = 1 << 0
@@ -8,44 +9,51 @@ EVENT_WRITE = 1 << 1
 
 class KqueueSelect:
     _kqueue: select.kqueue
-    _read_callback: Handle
-    _write_callback: Handle
+    _read_callback: Handle | None
+    _write_callback: Handle | None
 
     def __init__(self):
         self._kqueue = select.kqueue()
         self._max_events = 0
-        self._file_info = {}
+        self._read_callback = None
+        self._write_callback = None
 
-    def add_file_event(self, fd: int, filter: int, data=None):
+    def add_file_read_event(self, fd: int, _read_callback=None, *_args):
         # KQ_FILTER_READ = -1
         # KQ_FILTER_WRITE = -2
         # -1 | -2 = -1
-        if filter & EVENT_READ:
-            kev = select.kevent(
-                ident=fd, filter=select.KQ_FILTER_READ, flags=select.KQ_EV_ADD
-            )
-            self._kqueue.control([kev], 0, 0)
-            self._max_events += 1
-        if filter & EVENT_WRITE:
-            kev = select.kevent(
-                ident=fd, filter=select.KQ_FILTER_WRITE, flags=select.KQ_EV_ADD
-            )
-            self._kqueue.control([kev], 0, 0)
-            self._max_events += 1
+        kev = select.kevent(
+            ident=fd, filter=select.KQ_FILTER_READ, flags=select.KQ_EV_ADD
+        )
+        self._kqueue.control([kev], 0, 0)
+        self._max_events += 1
+        handle = Handle(_read_callback, _args)
+        self._read_callback = handle
 
-    def del_file_event(self, fd, filter: int, data=None):
-        if filter & EVENT_READ:
-            kev = select.kevent(
-                ident=fd, filter=select.KQ_FILTER_READ, flags=select.KQ_EV_DELETE
-            )
-            self._kqueue.control([kev], 0, 0)
-            self._max_events += 1
-        if filter & EVENT_WRITE:
-            kev = select.kevent(
-                ident=fd, filter=select.KQ_FILTER_WRITE, flags=select.KQ_EV_DELETE
-            )
-            self._kqueue.control([kev], 0, 0)
-            self._max_events += 1
+    def add_file_write_event(self, fd: int, _write_callback=None, *_args):
+        kev = select.kevent(
+            ident=fd, filter=select.KQ_FILTER_WRITE, flags=select.KQ_EV_ADD
+        )
+        self._kqueue.control([kev], 0, 0)
+        self._max_events += 1
+        handle = Handle(_write_callback, _args)
+        self._write_callback = handle
+
+    def del_file_read_event(self, fd: int):
+        kev = select.kevent(
+            ident=fd, filter=select.KQ_FILTER_READ, flags=select.KQ_EV_DELETE
+        )
+        self._kqueue.control([kev], 0, 0)
+        self._max_events -= 1
+        self._read_callback = None
+
+    def del_file_write_event(self, fd: int):
+        kev = select.kevent(
+            ident=fd, filter=select.KQ_FILTER_WRITE, flags=select.KQ_EV_DELETE
+        )
+        self._kqueue.control([kev], 0, 0)
+        self._max_events -= 1
+        self._write_callback = None
 
     def select(self, _timeout: float | None) -> List[Tuple[int, int]]:
         _max_events = max(self._max_events, 1)  # to prevent ignoring timeout
@@ -53,7 +61,7 @@ class KqueueSelect:
         fd_events = []
         for ev in evs:
             fd = ev.ident
-            kq_filter = ev.filter # ev.filter can be -1 or -2
+            kq_filter = ev.filter  # ev.filter can be -1 or -2
             filter = 0
             if kq_filter & select.KQ_FILTER_READ:
                 filter = EVENT_READ
