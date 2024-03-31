@@ -51,3 +51,10 @@ class EventLoop:
         self._stop = False
         while not self._stop:
             self._round()
+
+
+_cur_running_loop = EventLoop()
+
+
+def get_running_loop():
+    return _cur_running_loop
