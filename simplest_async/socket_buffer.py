@@ -18,6 +18,9 @@ class ReadBuffer:
 
         self._loop.add_file_read_event(self._sock.fileno(), self._read_data)
 
+    def close(self):
+        pass
+
     def _read_data(self) -> None:
         try:
             buf = self._sock.recv(self._recv_size)
@@ -71,7 +74,7 @@ class WriteBuffer:
         self._buffer = bytearray()
         self._wait = None
 
-        self._loop.add_file_read_event(self._sock.fileno(), self._can_write)
+        self._loop.add_file_write_event(self._sock.fileno(), self._can_write)
 
     def _can_write(self) -> None:
         if self._wait is not None:
