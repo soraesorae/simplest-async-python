@@ -54,7 +54,9 @@ class EventLoop:
             timeout = max(0.0, self._timer_callback_heap[0].start_time - current_ts)
 
         events = self._select.select(timeout)
-        # event -> _callback_queue
+
+        for _, _, handle in events:
+            self._callback_queue.append(handle)
 
         queue_len = len(self._callback_queue)
 
