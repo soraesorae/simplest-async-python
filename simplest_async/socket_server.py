@@ -45,6 +45,6 @@ class Server:
             except BlockingIOError:
                 break
 
-    def __del__(self):
+    def __del__(self) -> None:
         self._srv_sock.close()
         # client sock close
