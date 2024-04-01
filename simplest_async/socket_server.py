@@ -29,6 +29,7 @@ class Server:
         for _ in range(self._backlog):
             try:
                 client_sock, _ = self._srv_sock.accept()
+                client_sock.setblocking(False)
                 # read_buffer = ReadBuffer(loop, cleint_sock)
                 # writer_buffer = WriteBuffer(loop, client_sock)
                 # self._loop.add_file_read_event(client_sock.fileno(), )
