@@ -1,8 +1,8 @@
 from .loop import EventLoop, get_running_loop
 from .task import Task
-from .socket_buffer import ReadBuffer
+from .socket_buffer import ReadBuffer, WriteBuffer
 import socket
-from typing import Coroutine, Callable, Any
+from typing import Coroutine, Callable, Any, List, Dict
 
 
 class Server:
@@ -11,14 +11,19 @@ class Server:
     _backlog: int
     _loop: EventLoop
     _srv_sock: socket.socket
+    _clients_sock: Dict[int, socket.socket]
 
     def __init__(
-        self, _addr: str, _port: int, _client_handler: Callable[[ReadBuffer], Coroutine]
+        self,
+        _addr: str,
+        _port: int,
+        _client_handler: Callable[[ReadBuffer, WriteBuffer], Coroutine],
     ) -> None:
         self._loop = get_running_loop()
         self._addr = _addr
         self._port = _port
         self._backlog = 256
+        self._clients_sock = {}
         self._client_handler = _client_handler
 
     def run(self) -> None:
@@ -38,13 +43,14 @@ class Server:
                 client_sock, _ = self._srv_sock.accept()
                 client_sock.setblocking(False)
                 read_buffer = ReadBuffer(self._loop, client_sock)
-                Task(self._client_handler(read_buffer), self._loop)
-                # read_buffer = ReadBuffer(loop, cleint_sock)
-                # writer_buffer = WriteBuffer(loop, client_sock)
-                # self._loop.add_file_read_event(client_sock.fileno(), )
+                write_buffer = WriteBuffer(self._loop, client_sock)
+                self._clients_sock[client_sock.fileno()] = client_sock
+                Task(self._client_handler(read_buffer, write_buffer), self._loop)
             except BlockingIOError:
                 break
 
     def __del__(self) -> None:
         self._srv_sock.close()
-        # client sock close
+        for fd in self._clients_sock:
+            self._clients_sock[fd].close()
+        del self._clients_sock
