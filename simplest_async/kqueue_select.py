@@ -29,7 +29,7 @@ class KqueueSelect:
         )
         self._kqueue.control([kev], 0, 0)
         self._max_events += 1
-        handle = Handle(_read_callback, _args)
+        handle = Handle(_read_callback, *_args)
         self._read_callback[fd] = handle
 
     def add_file_write_event(
@@ -40,7 +40,7 @@ class KqueueSelect:
         )
         self._kqueue.control([kev], 0, 0)
         self._max_events += 1
-        handle = Handle(_write_callback, _args)
+        handle = Handle(_write_callback, *_args)
         self._write_callback[fd] = handle
 
     def del_file_read_event(self, fd: int) -> None:
