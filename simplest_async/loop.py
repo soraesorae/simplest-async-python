@@ -47,6 +47,7 @@ class EventLoop:
             timer_callback_handle = heapq.heappop(self._timer_callback_heap)
             self._callback_queue.append(timer_callback_handle)
 
+        timeout = None
         if self._callback_queue:
             timeout = 0.0
         elif self._timer_callback_heap:
