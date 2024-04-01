@@ -3,10 +3,14 @@ from simplest_async import socket_server
 import sys
 
 
-async def handler(read_buffer: socket_buffer.ReadBuffer):
+async def handler(
+    read_buffer: socket_buffer.ReadBuffer, write_buffer: socket_buffer.WriteBuffer
+):
+    print("#####")
     while True:
-        data = await read_buffer.read_until(b"#\n")
+        data = await read_buffer.read_until(b"\n")
         print(data)
+        await write_buffer.write(data)
 
 
 if __name__ == "__main__":
