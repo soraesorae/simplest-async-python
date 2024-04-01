@@ -26,11 +26,15 @@ class ReadBuffer:
         if len(buf) == 0:
             raise  # check socket disconnected
         self._buffer.extend(buf)
-        if self._wait_data:
+        if self._wait_data is not None:
             self._wait_data.set_result(None)
-        self._wait_data = None
+            self._wait_data = None
 
     async def read(self, n: int) -> bytes:
+        if len(self._buffer) == 0:
+            if self._wait_data is None:
+                self._wait_data = Future(self._loop)
+            await self._wait_data
         if len(self._buffer) < n:
             n = len(self._buffer)
         buf = self._buffer[:n]
@@ -44,7 +48,8 @@ class ReadBuffer:
             if ret == -1:  # not found
                 buf.extend(self._buffer)
                 self._buffer.clear()
-                self._wait_data = Future(self._loop)
+                if self._wait_data is None:
+                    self._wait_data = Future(self._loop)
                 await self._wait_data
             else:
                 right_index = ret + len(sep)
