@@ -19,7 +19,10 @@ class ReadBuffer:
         self._loop.add_file_read_event(self._sock.fileno(), self._read_data)
 
     def _read_data(self) -> None:
-        buf = self._sock.recv(self._recv_size)
+        try:
+            buf = self._sock.recv(self._recv_size)
+        except BlockingIOError:
+            raise
         if len(buf) == 0:
             raise  # check socket disconnected
         self._buffer.extend(buf)
