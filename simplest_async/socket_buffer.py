@@ -47,7 +47,7 @@ class ReadBuffer:
                 self._wait_data = Future(self._loop)
                 await self._wait_data
             else:
-                right_index = ret - len(sep)
+                right_index = ret + len(sep)
                 buf.extend(self._buffer[:right_index])
                 del self._buffer[:right_index]
                 break
