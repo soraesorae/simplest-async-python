@@ -57,3 +57,34 @@ class ReadBuffer:
                 del self._buffer[:right_index]
                 break
         return bytes(buf)
+
+
+class WriteBuffer:
+    _loop: EventLoop
+    _sock: socket.socket
+    _buffer: bytearray
+    _wait: Future | None
+
+    def __init__(self, _loop: EventLoop, _sock: socket.socket) -> None:
+        self._loop = _loop
+        self._sock = _sock
+        self._buffer = bytearray()
+        self._wait = None
+
+        self._loop.add_file_read_event(self._sock.fileno(), self._can_write)
+
+    def _can_write(self) -> None:
+        if self._wait is not None:
+            self._wait.set_result(None)
+            self._wait = None
+
+    async def write(self, _data: bytes) -> None:
+        data = bytearray(_data)
+        while True:
+            n = self._sock.send(data)
+            if n < len(data):
+                del data[:n]
+                self._wait = Future(self._loop)
+                await self._wait
+            else:
+                break
