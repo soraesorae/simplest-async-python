@@ -20,6 +20,8 @@ class ReadBuffer:
 
     def _read_data(self) -> None:
         buf = self._sock.recv(self._recv_size)
+        if len(buf) == 0:
+            raise  # check socket disconnected
         self._buffer.extend(buf)
         if self._wait_data:
             self._wait_data.set_result(None)
